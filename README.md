@@ -2,9 +2,9 @@
 
 This repository contains minimal code to run our 7B model.
 
-Blog: [https://mistral.ai/news/announcing-mistral-7b/](https://mistral.ai/news/announcing-mistral-7b/)\
-Discord: [https://discord.com/invite/mistralai](https://discord.com/invite/mistralai)\
-Documentation: [https://docs.mistral.ai/](https://docs.mistral.ai/)\
+Blog: [https://mistral.ai/news/announcing-mistral-7b/](https://mistral.ai/news/announcing-mistral-7b/)
+Discord: [https://discord.com/invite/mistralai](https://discord.com/invite/mistralai)
+Documentation: [https://docs.mistral.ai/](https://docs.mistral.ai/)
 Guardrailing: [https://docs.mistral.ai/usage/guardrailing](https://docs.mistral.ai/usage/guardrailing)
 
 ## Deployment
@@ -24,6 +24,7 @@ pip install -r requirements.txt
 ```
 
 ## Download the model
+
 ```
 wget https://models.mistralcdn.com/mistral-7b-v0-1/mistral-7B-v0.1.tar (md5sum: 37dab53973db2d56b2da0a033a15307f)
 tar -xf mistral-7B-v0.1.tar
@@ -33,18 +34,35 @@ tar -xf mistral-7B-v0.1.tar
 
 ```
 python -m main demo /path/to/mistral-7B-v0.1/
-# To give your own prompts
+```
+
+To give your own prompts
+
+给出自己的提示
+
+```
 python -m main interactive /path/to/mistral-7B-v0.1/
 ```
+
 Change `temperature` or `max_tokens` using:
+
+更改 `temperature` 或 `max_tokens` 使用：
+
 ```
 python -m main interactive /path/to/mistral-7B-v0.1/ --max_tokens 256 --temperature 1.0
 ```
 
-If you want a self-contained implementation, look at `one_file_ref.py`, or run it with 
+If you want a self-contained implementation, look at `one_file_ref.py`, or run it with
+
+如果你想要一个独立的实现，请查看 `one_file_ref.py`，或使用
+
 ```
 python -m one_file_ref /path/to/mistral-7B-v0.1/
+```
 
+结果：
+
+```
 This is a test of the emergency broadcast system. This is only a test.
 
 If this were a real emergency, you would be told what to do.
@@ -62,13 +80,18 @@ This
 ```
 
 To run logits equivalence through chunking and sliding window, launch
+
+要通过分块和滑动窗口运行日志等价，请启动
+
 ```
 python -m test_generate
 ```
 
 ### Running large models
 
-When running models that are too large to fit a single GPU's memory, use pipeline parallelism (PP) and `torchrun`. This is needed to run `Mixtral-7B-8x`. The code below does 2-way PP.
+When running models that are too large to fit a single GPU's memory, use pipeline parallelism (PP) and `torchrun`. This is needed to run `Mixtral-7B-8x`. The code below does 2-way PP.、
+
+当运行的模型过大而无法容纳单个 GPU 内存时，可使用流水线并行（PP）和 "torchrun"。运行 "Mixtral-7B-8x "时需要这样做。下面的代码实现了双向 PP。
 
 ```
 torchrun --nproc-per-node 2 -m main demo /path/to/mixtral-7B-8x-v0.1/ --num_pipeline_ranks=2
@@ -85,7 +108,6 @@ Attention is how information is shared between tokens in a sequence.
 In vanilla transformers, attention follows a causal mask: each token in the sequence can attend to itself and all the tokens in the past.
 This ensures that the model is causal, i.e. it can only use information from the past to predict the future.
 
-
 ![Causal attention mask](assets/full_attention.png)
 
 ## Sliding window to speed-up inference and reduce memory pressure
@@ -96,7 +118,7 @@ To alleviate this issue, we use a sliding window attention [1,2]: each token can
 
 ![Sliding window attention](assets/sliding_attention.png)
 
-Note that tokens outside the sliding window still influence next word prediction. 
+Note that tokens outside the sliding window still influence next word prediction.
 At each attention layer, information can move forward by W tokens at most: after two attention layers, information can move forward by 2W tokens, etc.
 For instance in a sequence of length 16K and a sliding window of 4K, after 4 layers, information has propagated to the full sequence length.
 
@@ -121,7 +143,6 @@ For this we can choose as chunk size the window size. For each chunk, we thus ne
 
 ![Chunking](assets/chunking.png)
 
-
 # Sparse Mixture of Experts (SMoE)
 
 Sparse Mixture of Experts allows one to decouple throughput from memory costs by only activating subsets of the overall model for each token. In this approach, each token is assigned to one or more "experts" -- a separate set of weights -- and only processed by sunch experts. This division happens at feedforward layers of the model. The expert models specialize in different aspects of the data, allowing them to capture complex patterns and make more accurate predictions.
@@ -131,7 +152,6 @@ Sparse Mixture of Experts allows one to decouple throughput from memory costs by
 ## Pipeline Parallelism
 
 Pipeline parallelism is a set of techniques for partitioning models, enabling the distribution of a large model across multiple GPUs. We provide a simple implementation of pipeline parallelism, which allows our larger models to be executed within the memory constraints of modern GPUs. Note that this implementation favours simplicity over throughput efficiency, and most notabably does not include microbatching.
-
 
 ## Integrations and related projects
 
@@ -149,13 +169,14 @@ Pipeline parallelism is a set of techniques for partitioning models, enabling th
 ### Applications
 
 - Compare Mistral 7B to Llama 13B on [LLMBoxing](https://llmboxing.com/)
-- Compare Mistral 7B to 10+ LLMs on [Chatbot Arena](https://chat.lmsys.org/) or host it yourself with [FastChat](https://github.com/lm-sys/FastChat) 
+- Compare Mistral 7B to 10+ LLMs on [Chatbot Arena](https://chat.lmsys.org/) or host it yourself with [FastChat](https://github.com/lm-sys/FastChat)
 - Use Mistral 7B in [Dust](https://dust.tt/)
-- Speak to Mistral AI Instruct on [Perplexity labs](https://labs.perplexity.ai/) (warning: deployed version is not [guardrailed](https://docs.mistral.ai/usage/guardrailing)) 
+- Speak to Mistral AI Instruct on [Perplexity labs](https://labs.perplexity.ai/) (warning: deployed version is not [guardrailed](https://docs.mistral.ai/usage/guardrailing))
 - Use Mistral 7B in [Quivr](https://blog.quivr.app/is-mistral-a-good-replacement-for-openai/)
 - Use Mistral 7B or its Zephyr derivate on [LlamaIndex](https://docs.llamaindex.ai/en/stable/core_modules/model_modules/llms/root.html#open-source-llms)
 
 ### Local deployment
+
 - [Ollama](https://ollama.ai/library/mistral) local deployment
 - [GGML](https://github.com/ggerganov/ggml) local deployment
 - [TextSynth](https://textsynth.com/pricing.html) local deployment
@@ -163,11 +184,8 @@ Pipeline parallelism is a set of techniques for partitioning models, enabling th
 ### Derived models
 
 - Multimodal: [BakLLaVa-1](https://huggingface.co/SkunkworksAI/BakLLaVA-1)
-
 - Model fine-tuned on direct preferences: [Zephyr-7B-alpha](https://huggingface.co/HuggingFaceH4/zephyr-7b-alpha)
-
 - Model fine-tuned on generated data: [OpenOrca](https://huggingface.co/Open-Orca/Mistral-7B-OpenOrca)
-
 
 ## References
 
